@@ -92,55 +92,6 @@ def get_ohm_dao(bond_price, market_value_asset):
     return ohm_dao
 
 
-# def get_p_ohm_redeem(ohm_supply, ohm_price,
-#                      p_ohm_supply, vest_supply_frac=0.09):
-#     """
-#     OHM is minted for the team, investors, advisors, or the DAO.
-#     This happens whenever the aforementioned party exercises their p_ohm.
-#     E.g. an individual would supply 1 p_ohm along with 1 DAI to mint 1 OHM.
-#     The p_ohm is subsequently burned.
-#
-#     Team, investor, and advisor pOHM cumulatively vest as 11.8% of OHM supply.
-#     This means that at 1m OHM supply, a maximum of 118k pOHM can be redeemed.
-#     At 10m OHM supply, it’s 1.18m pOHM. pOHM holders finish vesting anywhere
-#     from 2b to 5b supply, so this is a long term bet.
-#     There’s a lot of upside for holders, but it is dependent on actual growth
-#     of the protocol.
-#
-#     See: https://olympusdao.medium.com/what-is-poh-16b2c38a6cd6
-#
-#     Assumptions
-#     -----------
-#      * p_ohm is only redeemed for a profit.
-#      * The max amount of redeemable p_ohm will be redeemed for any profit.
-#      * Redeemers allways have sufficient USD to redeem.
-#
-#     Arguments
-#     ---------
-#     ohm_supply: The total supply of existing OHM,
-#                 not including bonds_outstanding. Bonded OHMs are gradually
-#                 added to ohm_supply during the vesting period.
-#     ohm_price: The price of the bond in USD.
-#     p_ohm_supply: The total supply of p_ohm. Current supply, not initial.
-#     vest_supply_frac: The number of p_ohm that can be redeemed as a fraction
-#                       of the total OHM supply (ohm_supply).
-#
-#     Returns
-#     -------
-#     p_ohm_redeem: The number of OHMs that were minted/redeemed from the p_ohm.
-#     p_ohm_supply: Updated total supply of p_ohm. Current supply, not initial.
-#     """
-#
-#     # No redeem if it costs more than is gained.
-#     if ohm_price > 1:
-#         p_ohm_redeem = min(ohm_supply * vest_supply_frac, p_ohm_supply)
-#     else:
-#         p_ohm_redeem = 0.
-#
-#     p_ohm_supply -= p_ohm_redeem
-#
-#     return p_ohm_redeem, p_ohm_supply
-
 def get_p_ohm_redeem(ohm_supply, ohm_price, p_ohm_supply,
                      p_ohm_redeemed, vest_supply_frac=0.09):
     """
@@ -313,17 +264,6 @@ def bond_or_stake(bond_price, ohm_price, reward_rate,
         strategy = 'stake'
 
     return strategy, roi_bond, roi_stake, bond_stake_diff
-
-
-def apy_to_reward_rate(apy, n_rebase_per_day):
-    """
-
-    APY = (1 + reward_rate)**(n_rebase_per_day * 365)
-    APY**(1 / n_rebase_per_day * 365) = 1 + reward_rate
-    """
-    reward_rate = apy**(1 / (n_rebase_per_day * 365)) - 1
-
-    return reward_rate
 
 
 def roi_to_reward_rate(roi_5day, n_rebase_per_day):
