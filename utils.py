@@ -1,3 +1,61 @@
+import requests
+import os
+import pandas as pd
+from datetime import datetime, timedelta
+from time import sleep
+
+
+def get_historical_prices(fname='data/btrfly-usd-max.csv'):
+    """
+    Downloads and saves price data from CoinGecko.
+    If fname exists and holds price data then new data
+    (after the last date in fname) is appended. Otherwise all data is dowloaded
+    and a new file created.
+
+    """
+    url = 'https://api.coingecko.com/api/v3/coins/butterflydao/history'
+    t0 = '2021-12-19'  # First day of BTRFLY trading
+    t1 = datetime.now().strftime('%Y-%m-%d')
+
+    if not fname:
+        fname = 'data/btrfly-usd-max.csv'
+        print(f'Trying to save data to {fname}.')
+        if not os.path.isdir('data'):
+            os.path.mkdir('data')
+
+    # Get last date stored in the file FNAME
+    if os.path.isfile(fname):
+        data = pd.read_csv(fname)
+        t = data['snapped_at'].iloc[-1]
+        dt = datetime.strptime(t, '%Y-%m-%d %H:%M:%S UTC') + timedelta(days=1)
+        t = dt.strftime('%Y-%m-%d')
+    else:
+        t = t0
+        data = pd.DataFrame(columns=['snapped_at',
+                                     'price',
+                                     'market_cap',
+                                     'total_volume'])
+
+    for date in pd.date_range(start=t, end=t1, freq='D'):
+        params = {'date': date.strftime('%d-%m-%Y')}
+        resp = requests.get(url, params)
+        if resp.status_code == 200:
+
+            market_data = resp.json()['market_data']
+            new = {'snapped_at': date.strftime('%Y-%m-%d %H:%M:%S UTC'),
+                   'price': market_data['current_price']['usd'],
+                   'market_cap': market_data['market_cap']['usd'],
+                   'total_volume': market_data['total_volume']['usd']}
+            data = data.append(pd.DataFrame(new,
+                                            columns=new.keys(),
+                                            index=[len(data)]))
+
+        sleep(2)  # CoinGecko's free API is rate-limited to 50 calls/min.
+
+    print(f'Writing data to {fname}.')
+    data.to_csv(fname)
+
+
 def get_bond_price(bonds_outstanding, ohm_supply, BCV):
     """
     Arguments
